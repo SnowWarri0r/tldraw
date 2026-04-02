@@ -174,6 +174,19 @@ export {
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
+export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
+export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'
+export {
+	type TLCameraEndPerfEvent,
+	type TLCameraStartPerfEvent,
+	type TLFramePerfEvent,
+	type TLInteractionEndPerfEvent,
+	type TLInteractionStartPerfEvent,
+	type TLPerfEventMap,
+	type TLPerfFrameTimeStats,
+	type TLShapeOperationPerfEvent,
+	type TLUndoRedoPerfEvent,
+} from './lib/editor/managers/PerformanceManager/perf-types'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'

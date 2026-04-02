@@ -1448,6 +1448,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
+    readonly performance: PerformanceManager;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
@@ -2548,6 +2549,32 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 
 // @public
+export class PerformanceApiAdapter {
+    constructor(perfManager: PerformanceManager);
+    // (undocumented)
+    dispose(): void;
+}
+
+// @public (undocumented)
+export class PerformanceManager {
+    constructor(editor: Editor);
+    // @internal (undocumented)
+    readonly emitter: EventEmitter<TLPerfEventMap, any>;
+    // @internal (undocumented)
+    _notifyCameraOperation(type: 'panning' | 'zooming'): void;
+    // @internal (undocumented)
+    _notifyInteractionEnd(): void;
+    // @internal (undocumented)
+    _notifyInteractionStart(name: string, path: string): void;
+    // @internal (undocumented)
+    _notifyInteractionUpdate(): void;
+    // @internal (undocumented)
+    _notifyUndoRedo(type: 'redo' | 'undo', undoDepth: number, redoDepth: number): void;
+    on<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
+    once<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
+}
+
+// @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
 // @public (undocumented)
@@ -3280,6 +3307,27 @@ export interface TLCameraConstraints {
 }
 
 // @public (undocumented)
+export interface TLCameraEndPerfEvent {
+    // (undocumented)
+    duration: number;
+    // (undocumented)
+    fps: number;
+    // (undocumented)
+    frameCount: number;
+    // (undocumented)
+    frameTimeStats: TLPerfFrameTimeStats;
+    // (undocumented)
+    shapeCount: number;
+    // (undocumented)
+    type: 'panning' | 'zooming';
+    // (undocumented)
+    viewport: {
+        height: number;
+        width: number;
+    };
+}
+
+// @public (undocumented)
 export interface TLCameraMoveOptions {
     animation?: {
         easing?(t: number): number;
@@ -3298,6 +3346,14 @@ export interface TLCameraOptions {
     wheelBehavior: 'none' | 'pan' | 'zoom';
     zoomSpeed: number;
     zoomSteps: number[];
+}
+
+// @public (undocumented)
+export interface TLCameraStartPerfEvent {
+    // (undocumented)
+    timestamp: number;
+    // (undocumented)
+    type: 'panning' | 'zooming';
 }
 
 // @public (undocumented)
@@ -4034,6 +4090,18 @@ export interface TLFontFaceSource {
     url: string;
 }
 
+// @public (undocumented)
+export interface TLFramePerfEvent {
+    // (undocumented)
+    culledShapeCount: number;
+    // (undocumented)
+    elapsed: number;
+    // (undocumented)
+    shapesOnPage: number;
+    // (undocumented)
+    visibleShapeCount: number;
+}
+
 // @public
 export interface TLGeometryOpts {
     context?: string;
@@ -4130,6 +4198,38 @@ export type TLIndicatorPath = {
     clipPath?: Path2D;
     path: Path2D;
 } | Path2D;
+
+// @public (undocumented)
+export interface TLInteractionEndPerfEvent {
+    // (undocumented)
+    duration: number;
+    // (undocumented)
+    fps: number;
+    // (undocumented)
+    frameCount: number;
+    // (undocumented)
+    frameTimeStats: TLPerfFrameTimeStats;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    path: string;
+    // (undocumented)
+    selectedShapeTypes: Record<string, number>;
+    // (undocumented)
+    shapeCount: number;
+    // (undocumented)
+    updateCount: number;
+}
+
+// @public (undocumented)
+export interface TLInteractionStartPerfEvent {
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    path: string;
+    // (undocumented)
+    timestamp: number;
+}
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
@@ -4249,6 +4349,48 @@ export const tlmenus: {
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
+
+// @public (undocumented)
+export interface TLPerfEventMap {
+    // (undocumented)
+    'camera:end': [TLCameraEndPerfEvent];
+    // (undocumented)
+    'camera:start': [TLCameraStartPerfEvent];
+    // (undocumented)
+    'interaction:end': [TLInteractionEndPerfEvent];
+    // (undocumented)
+    'interaction:start': [TLInteractionStartPerfEvent];
+    // (undocumented)
+    'shapes:created': [TLShapeOperationPerfEvent];
+    // (undocumented)
+    'shapes:deleted': [TLShapeOperationPerfEvent];
+    // (undocumented)
+    'shapes:updated': [TLShapeOperationPerfEvent];
+    // (undocumented)
+    frame: [TLFramePerfEvent];
+    // (undocumented)
+    redo: [TLUndoRedoPerfEvent];
+    // (undocumented)
+    undo: [TLUndoRedoPerfEvent];
+}
+
+// @public (undocumented)
+export interface TLPerfFrameTimeStats {
+    // (undocumented)
+    avg: number;
+    // (undocumented)
+    frameTimes: number[];
+    // (undocumented)
+    max: number;
+    // (undocumented)
+    median: number;
+    // (undocumented)
+    min: number;
+    // (undocumented)
+    p95: number;
+    // (undocumented)
+    p99: number;
+}
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
@@ -4461,6 +4603,18 @@ export interface TLShapeIndicatorsProps {
     showAll?: boolean;
 }
 
+// @public (undocumented)
+export interface TLShapeOperationPerfEvent {
+    // (undocumented)
+    count: number;
+    // (undocumented)
+    operation: 'create' | 'delete' | 'update';
+    // (undocumented)
+    shapeTypes: Record<string, number>;
+    // (undocumented)
+    timestamp: number;
+}
+
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
@@ -4668,6 +4822,16 @@ export interface TLTldrawExternalContentSource {
     data: TLContent;
     // (undocumented)
     type: 'tldraw';
+}
+
+// @public (undocumented)
+export interface TLUndoRedoPerfEvent {
+    // (undocumented)
+    redoDepth: number;
+    // (undocumented)
+    type: 'redo' | 'undo';
+    // (undocumented)
+    undoDepth: number;
 }
 
 // @public (undocumented)

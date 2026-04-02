@@ -152,6 +152,7 @@ import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -369,6 +370,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.inputs = new InputsManager(this)
+		this.performance = new PerformanceManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -948,6 +950,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for performance measurement hooks.
+	 *
+	 * @public
+	 */
+	readonly performance: PerformanceManager
+
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -1161,6 +1170,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
+		this.performance._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1191,6 +1201,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
+		this.performance._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -10687,6 +10698,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.performance._notifyCameraOperation('zooming')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10697,6 +10709,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10791,6 +10804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							return
 						}
 
