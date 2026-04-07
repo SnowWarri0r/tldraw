@@ -58,10 +58,12 @@ export interface CollectionDiff<T> {
  * The source of a change to the store.
  * - `'user'` - Changes originating from local user actions
  * - `'remote'` - Changes originating from remote synchronization
+ * - `'undo'` - Changes originating from an undo operation
+ * - `'redo'` - Changes originating from a redo operation
  *
  * @public
  */
-export type ChangeSource = 'user' | 'remote'
+export type ChangeSource = 'user' | 'remote' | 'undo' | 'redo'
 
 /**
  * Filters for store listeners to control which changes trigger the listener.
@@ -1197,9 +1199,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.pendingAfterEvents.set(id, { before, after })
 		}
 	}
+	/** @internal Set by HistoryManager to indicate undo/redo operations */
+	_changeSourceOverride: ChangeSource | null = null
+
 	private flushAtomicCallbacks(isMergingRemoteChanges: boolean) {
 		let updateDepth = 0
-		let source: ChangeSource = isMergingRemoteChanges ? 'remote' : 'user'
+		let source: ChangeSource = this._changeSourceOverride ?? (isMergingRemoteChanges ? 'remote' : 'user')
 		while (this.pendingAfterEvents) {
 			const events = this.pendingAfterEvents
 			this.pendingAfterEvents = null
@@ -1278,7 +1283,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/** @internal */
 	addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void) {
 		return this.historyAccumulator.addInterceptor((entry) =>
-			fn(entry, this.isMergingRemoteChanges ? 'remote' : 'user')
+			fn(entry, this._changeSourceOverride ?? (this.isMergingRemoteChanges ? 'remote' : 'user'))
 		)
 	}
 }

@@ -177,7 +177,9 @@ export class HistoryManager<R extends UnknownRecord> {
 				return this
 			}
 
+			this.store._changeSourceOverride = 'undo'
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
+			this.store._changeSourceOverride = null
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
@@ -225,7 +227,9 @@ export class HistoryManager<R extends UnknownRecord> {
 				}
 			}
 
+			this.store._changeSourceOverride = 'redo'
 			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
+			this.store._changeSourceOverride = null
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
